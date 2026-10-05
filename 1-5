@@ -6,6 +6,34 @@
 #include <algorithm>
 #include <fstream>
 
+int getMax(const std::vector<int>& arr) {
+    if (arr.empty()) return 0;
+    int maxVal = arr[0];
+    for (int num : arr) {
+        if (num > maxVal) {
+            maxVal = num;
+        }
+    }
+    return maxVal;
+}
+
+void bitmapSort(std::vector<int>& arr) {
+    if (arr.empty()) return;
+
+    std::vector<bool> bits(getMax(arr) + 1, false);
+
+    for (int num : arr) {
+        bits[num] = true;
+    }
+
+    arr.clear();
+    for (int i = 0; i < bits.size(); i++) {
+        if (bits[i]) {
+            arr.push_back(i);
+        }
+    }
+}
+
 int partition(std::vector<int>& arr, int low, int high) {
     int pivot = arr[high];
     int i = low - 1;
@@ -37,77 +65,113 @@ void Sort(std::vector<int>& vec) {
 
 int main() {
     /*
+    // Uncomment if you need to generate "in.txt" first:
     const int TOTAL_NUMBERS = 10000000;
-
     std::vector<int> numbers(TOTAL_NUMBERS);
-
     std::iota(numbers.begin(), numbers.end(), 1);
-
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(numbers.begin(), numbers.end(), g);
-
     std::ofstream outfile("in.txt");
-    if (!outfile) {
-        std::cerr << "Error opening file for writing.\n";
-        return 1;
-    }
-
     for (int num : numbers) {
         outfile << num << "\n";
     }
-
     outfile.close();
     std::cout << "Successfully wrote 10,000,000 unique random integers to in.txt\n";
-
-    return 0;
-
     */
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    std::ofstream OutFile("out.txt");
-    if (!OutFile) {
-        std::cerr << "Error: Could not create out.txt\n";
-        return 1;
-    }
 
     const int CHUNK = 200000;
     const int PASSES = 50;
 
-    for (int pass = 0; pass < PASSES; ++pass) {
-        int low = (pass * CHUNK) + 1;
-        int high = (pass + 1) * CHUNK; 
+    std::cout << "--- Starting QuickSort Benchmark ---" << std::endl;
+    auto startQuick = std::chrono::high_resolution_clock::now();
 
-        std::ifstream infile("in.txt");
-        if (!infile) {
-            std::cerr << "Error: Could not open in.txt on pass " << pass << "\n";
-            std::cerr << "Make sure in.txt is in the same directory as this program.\n";
+    {
+        std::ofstream OutFile("out_quicksort.txt");
+        if (!OutFile) {
+            std::cerr << "Error: Could not create out_quicksort.txt\n";
             return 1;
         }
 
-        std::vector<int> chunk;
-        int val;
+        for (int pass = 0; pass < PASSES; ++pass) {
+            int low = (pass * CHUNK) + 1;
+            int high = (pass + 1) * CHUNK;
 
-        while (infile >> val) {
-            if (val >= low && val <= high) {
-                chunk.push_back(val);
+            std::ifstream infile("in.txt");
+            if (!infile) {
+                std::cerr << "Error: Could not open in.txt\n";
+                return 1;
+            }
+
+            std::vector<int> chunk;
+            int val;
+
+            while (infile >> val) {
+                if (val >= low && val <= high) {
+                    chunk.push_back(val);
+                }
+            }
+            infile.close();
+
+            if (!chunk.empty()) {
+                Sort(chunk);
+                for (int num : chunk) {
+                    OutFile << num << "\n";
+                }
             }
         }
-
-        infile.close();
-
-        if (!chunk.empty()) {
-            Sort(chunk);
-            for (int num : chunk) {
-                OutFile << num << "\n";
-            }
-        }
-
-        std::cout << "Finished pass " << pass + 1 << " of " << PASSES << "\n";
     }
 
-    OutFile.close();
-    std::cout << "Sorting complete. Check out.txt.\n";
+    auto endQuick = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedQuick = endQuick - startQuick;
+    std::cout << "QuickSort finished.\n\n";
+
+    std::cout << "--- Starting BitmapSort Benchmark ---" << std::endl;
+    auto startBitmap = std::chrono::high_resolution_clock::now();
+
+    {
+        std::ofstream OutFile("out_bitmap.txt");
+        if (!OutFile) {
+            std::cerr << "Error: Could not create out_bitmap.txt\n";
+            return 1;
+        }
+
+        for (int pass = 0; pass < PASSES; ++pass) {
+            int low = (pass * CHUNK) + 1;
+            int high = (pass + 1) * CHUNK;
+
+            std::ifstream infile("in.txt");
+            if (!infile) {
+                std::cerr << "Error: Could not open in.txt\n";
+                return 1;
+            }
+
+            std::vector<int> chunk;
+            int val;
+
+            while (infile >> val) {
+                if (val >= low && val <= high) {
+                    chunk.push_back(val);
+                }
+            }
+            infile.close();
+
+            if (!chunk.empty()) {
+                bitmapSort(chunk);
+                for (int num : chunk) {
+                    OutFile << num << "\n";
+                }
+            }
+        }
+    }
+
+    auto endBitmap = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedBitmap = endBitmap - startBitmap;
+    std::cout << "BitmapSort finished.\n\n";
+
+    std::cout << "QuickSort Time:  " << elapsedQuick.count() << " seconds\n";
+    std::cout << "BitmapSort Time: " << elapsedBitmap.count() << " seconds\n";
+
+
     return 0;
 }
