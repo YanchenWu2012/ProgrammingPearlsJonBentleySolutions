@@ -1,31 +1,19 @@
+
 #include <iostream>
 #include <vector>
-#include <chrono>
 
-struct SearchResult {
-    int index;
-    int comparisons;
-    double duration_nanoseconds;
-};
-
-SearchResult binarySearchInstrumented(const std::vector<int>& arr, int target) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
+int binarySearch(const std::vector<int>& arr, int target) {
     int low = 0;
-    int high = static_cast<int>(arr.size()) - 1;
+    int high = arr.size() - 1;
     int comparisons = 0;
 
     while (low <= high) {
-        int mid = low + (high - low) / 2;
-
         comparisons++;
+        int mid = low + (high - low) / 2;
         if (arr[mid] == target) {
-            auto end_time = std::chrono::high_resolution_clock::now();
-            double elapsed = std::chrono::duration<double, std::nano>(end_time - start_time).count();
-            return { mid, comparisons, elapsed };
+            return comparisons;
         }
 
-        comparisons++;
         if (arr[mid] < target) {
             low = mid + 1;
         }
@@ -34,20 +22,32 @@ SearchResult binarySearchInstrumented(const std::vector<int>& arr, int target) {
         }
     }
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    double elapsed = std::chrono::duration<double, std::nano>(end_time - start_time).count();
-    return { -1, comparisons, elapsed };
+    return comparisons;
 }
 
 int main() {
-    std::vector<int> data = { 2, 5, 8, 12, 16, 23, 38, 56, 72, 91 };
-    int target = 23;
+    std::vector<int> sizes = { 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384 };
+    std::vector<int> comparisons_made;
 
-    SearchResult res = binarySearchInstrumented(data, target);
+    for (int n : sizes) {
+        std::vector<int> arr(n);
+        for (int i = 0; i < n; i++) arr[i] = i;
 
-    std::cout << "Target index: " << res.index << "\n";
-    std::cout << "Comparisons: " << res.comparisons << "\n";
-    std::cout << "Elapsed time: " << res.duration_nanoseconds << " ns\n";
+        int comps = binarySearch(arr, -1);
+        comparisons_made.push_back(comps);
+    }
+
+    std::cout << "a = [";
+    for (size_t i = 0; i < sizes.size(); ++i) {
+        std::cout << sizes[i] << (i < sizes.size() - 1 ? ", " : "");
+    }
+    std::cout << "]\n";
+
+    std::cout << "b = [";
+    for (size_t i = 0; i < comparisons_made.size(); ++i) {
+        std::cout << comparisons_made[i] << (i < comparisons_made.size() - 1 ? ", " : "");
+    }
+    std::cout << "]\n";
 
     return 0;
 }
