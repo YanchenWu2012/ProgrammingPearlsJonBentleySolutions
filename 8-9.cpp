@@ -8,6 +8,14 @@ int maxSubvectorNonEmpty(const std::vector<int>& x) {
         throw std::invalid_argument("Input vector cannot be empty");
     }
 
+    int premax = std::numeric_limits<int>::min();
+    for (int i : x) {
+        premax = std::max(premax, i);
+    }
+    if (premax < 0) {
+        return premax;
+    }
+
     int maxsofar = x[0];
     int maxendinghere = x[0];
 
