@@ -3,21 +3,18 @@
 #include <vector>
 
 int maxSubarray2b(const std::vector<int>& x) {
-    int n = static_cast<int>(x.size());
-
-    std::vector<int> cumarr(n + 1, 0);
-    for (int i = 0; i < n; ++i) {
-        cumarr[i + 1] = cumarr[i] + x[i];
+    int n = x.size();
+    std::vector<int> cumarr(n + 1,0);
+    for (int i = 1; i <= n; i++) {
+        cumarr[i] = cumarr[i - 1] + x[i - 1];
     }
-
     int maxsofar = 0;
-    for (int i = 0; i < n; ++i) {
-        for (int j = i; j < n; ++j) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i; j < n; j++) {
             int sum = cumarr[j + 1] - cumarr[i];
-            maxsofar = std::max(maxsofar, sum);
+            maxsofar = std::max(sum, maxsofar);
         }
     }
-
     return maxsofar;
 }
 
