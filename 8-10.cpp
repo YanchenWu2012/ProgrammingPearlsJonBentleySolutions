@@ -13,13 +13,11 @@ int closestToZeroSubarray(const std::vector<int>& x) {
         cumarr[i + 1] = cumarr[i] + x[i];
     }
 
-    std::sort(cumarr.begin(), cumarr.end());
-
     int bestSum = std::numeric_limits<int>::max();
     for (int i = 0; i < n; ++i) {
-        int diff = cumarr[i + 1] - cumarr[i];
-        if (diff < bestSum) {
-            bestSum = diff;
+        for (int j = i; j < n; j++) {
+            int diff = cumarr[j + 1] - cumarr[i];
+            bestSum = std::min(bestSum, abs(diff));
         }
     }
 
